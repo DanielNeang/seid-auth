@@ -27,13 +27,15 @@ The EV's identity is cryptographically proven during the TLS handshake. No MAC a
 
 ### Why Now?
 
-The EU's AFIR regulation (Commission Delegated Regulation (EU) 2025/656) mandates that from **January 1, 2027**, all newly installed or renovated public and private chargers must support **ISO 15118-20**. Every new charger in Europe will have the mTLS infrastructure SEID-Auth needs — making this approach immediately deployable at scale.
+The Megawatt Charging System (MCS) for heavy-duty vehicles mandates ISO 15118-20 as the communication protocol. As MCS deployment accelerates, a large segment of commercial vehicles — trucks, buses, heavy equipment — will natively support the mTLS infrastructure that SEID-Auth requires.
+
+Additionally, the EU's AFIR regulation (Commission Delegated Regulation (EU) 2025/656) mandates that from **January 1, 2027**, all newly installed or renovated public and private chargers must support **ISO 15118-20**. Every new charger in Europe will have the mTLS infrastructure SEID-Auth needs — making this approach immediately deployable at scale.
 
 ## Documentation
 
 - **[Whitepaper](SEID-Auth-Whitepaper.md)** — Full technical specification with protocol flows, security analysis, and implementation guidance
 
-## Who Benefits?
+## Who?
 
 **EVSE manufacturers** are the most critical actor — the SECC firmware extracts the EVCCID from the already-validated Vehicle Certificate and sends it via OCPP. Since they're already implementing ISO 15118-20 mTLS, the incremental effort is minimal.
 
