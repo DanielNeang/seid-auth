@@ -29,6 +29,8 @@ The EV charging industry has two approaches for automatic vehicle authorization.
 
 **SEID-Auth** introduces a third path. ISO 15118-20 mandates mutual TLS 1.3 for all communication sessions, including those using External Identification Means (EIM). The SECC already receives and validates the EV's Vehicle Certificate during every session. The EVCCID, embedded in the Vehicle Certificate's subject common name, is therefore always available as a cryptographically authenticated vehicle identifier — a byproduct of the mandatory security handshake.
 
+Autocharge established the first-see-and-link enrollment pattern that SEID-Auth builds on; SEID-Auth replaces its insecure MAC-based identifier with a cryptographically authenticated one.
+
 SEID-Auth adds no PKI requirements beyond what ISO 15118-20 already mandates. The V2G Root CA trust anchors and OEM Root Certificate distribution are already necessary for the mTLS handshake itself. SEID-Auth simply uses the EVCCID — application-layer data already present in the validated certificate — for authorization via OCPP.
 
 ---
