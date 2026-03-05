@@ -94,9 +94,8 @@ The EVCCID appears in **two places** during an ISO 15118-20 session:
 
 This is the **most likely implementation pitfall**. The `SessionSetupReq` EVCCID is readily available in the application layer, tempting developers to use it directly. This would undermine the entire security model.
 
-- The SECC **MUST** extract the EVCCID from the **Vehicle Certificate's Subject Common Name**, not from `SessionSetupReq`.
+- The SECC **MUST** extract the EVCCID for OCPP authorization from the **Vehicle Certificate's Subject Common Name**, never from `SessionSetupReq`.
 - The SECC **SHOULD** cross-check the two values and log a security event if they differ; it **MAY** reject the session.
-- The SECC **MUST NOT** use the `SessionSetupReq` EVCCID as the basis for OCPP authorization under SEID-Auth.
 
 ---
 

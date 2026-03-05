@@ -4,7 +4,7 @@
 
 ---
 
-SEID-Auth uses the EVCCID — a vehicle identifier embedded in the Vehicle Certificate — extracted during the mandatory mTLS 1.3 handshake in ISO 15118-20. It provides the security of Plug & Charge without the ecosystem complexity: no contract certificates, no certificate pool, no eMSP sub-CAs. With the EU AFIR mandating ISO 15118-20 on all new chargers from January 2027, the required infrastructure is being deployed now.
+SEID-Auth uses the EVCCID — a vehicle identifier embedded in the Vehicle Certificate — extracted during the mandatory mTLS 1.3 handshake in ISO 15118-20. It provides the security of Plug & Charge without the ecosystem complexity: no contract certificates, no certificate pool, no eMSP sub-CAs. The Megawatt Charging System (MCS) for heavy-duty vehicles mandates ISO 15118-20, and the EU AFIR requires it on all new chargers from January 2027 — the infrastructure SEID-Auth needs is being deployed now.
 
 ```
 EV plugs in → mTLS 1.3 handshake → Vehicle Certificate validated
@@ -23,4 +23,4 @@ This is a community proposal published for open review. We welcome [discussion](
 
 ---
 
-*SEID-Auth is an independent community proposal. It is not affiliated with or endorsed by the Open Charge Alliance, CharIN, ISO, or any vehicle manufacturer.*
+*SEID-Auth is an independent community proposal. It is not affiliated with or endorsed by the Open Charge Alliance, CharIN, ISO, any vehicle or EVSE manufacturer, CSMS provider, or the author's employer.*
