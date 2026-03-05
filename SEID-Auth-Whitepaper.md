@@ -68,7 +68,7 @@ ISO 15118 Plug & Charge solves the security problem through a comprehensive PKI 
 - Bilateral roaming agreements between CPOs and eMSPs
 - OEM Provisioning Certificate infrastructure for certificate installation on vehicles
 
-Note: the V2G Root CAs, OEM Root Certificates, and the Root Certificate Pool needed to distribute trust anchors are **already required** by ISO 15118-20 for the base mTLS handshake. SEID-Auth does not add to this baseline — it is Plug & Charge that adds the layers listed above. This distinction is important: SEID-Auth's PKI footprint is identical to what any ISO 15118-20 implementation already needs.
+Note: V2G Root CAs and the Root Certificate Pool are already required by ISO 15118-20 for the base mTLS handshake; the additional layers listed above are PnC additions, not SEID-Auth additions.
 
 The added complexity of PnC has slowed its adoption, particularly for smaller operators, private charging environments, and markets where the eMSP ecosystem is not yet fully established.
 
@@ -320,11 +320,7 @@ This model is a primary use case for SEID-Auth. Fleet CPOs (logistics companies,
 3. CSMS recognizes the pre-registered EVCCID; responds `Accepted`.
 4. Charging begins automatically.
 
-This model is particularly relevant for:
-- **MCS heavy-duty charging** at logistics hubs and truck stops
-- **Bus depot charging** where dozens of vehicles charge overnight
-- **Corporate fleet charging** at workplace facilities
-- **Delivery fleet charging** at distribution centers
+This model is particularly relevant for the private charging environments described in Section 2.5 (logistics hubs, bus depots, corporate fleets, and delivery centers).
 
 ### 5.3 Enrollment Architecture
 
@@ -408,7 +404,7 @@ The EVCCID has a minimum length of 20 characters and a maximum of 255 characters
 
 For most realistic EVCCIDs, the 36-character limit is expected to be sufficient: the minimum structure (3 + 1 + 15 + 1 = 20 characters) leaves ample room, and OEMs are incentivized to keep identifiers compact for practical reasons.
 
-**Recommendation:** OCPP implementations supporting SEID-Auth SHOULD support `idToken` string lengths of up to 255 characters to accommodate the full EVCCID range defined by ISO 15118-20. This recommendation aligns with the ongoing development of OCPP 2.1 and its enhanced ISO 15118-20 support.
+**Recommendation:** OCPP implementations supporting SEID-Auth SHOULD support `idToken` string lengths of up to 255 characters to accommodate the full EVCCID range defined by ISO 15118-20. This recommendation aligns with the ongoing development of OCPP 2.1 and its enhanced ISO 15118-20 support. No changes to the OCPP transaction model are required; SEID-Auth uses standard `AuthorizeRequest`/`AuthorizeResponse` and `TransactionEventRequest` messages throughout.
 
 ### 7.3 Interim Guidance
 
@@ -497,11 +493,7 @@ If the SECC itself is compromised, it could send fraudulent AuthorizeRequests to
 
 ### 8.3 Security Properties Summary
 
-SEID-Auth provides:
-- **Authentication:** The mTLS handshake cryptographically proves the EV possesses the private key for the presented Vehicle Certificate.
-- **Integrity:** The EVCCID is signed as part of the Vehicle Certificate by the OEM's CA. It cannot be modified without invalidating the certificate.
-- **Non-repudiation:** The CSMS can log the EVCCID and associated certificate information, providing an auditable trail of which vehicle was authorized.
-- **Revocation:** Standard PKI revocation mechanisms (OCSP, CRL) apply to the Vehicle Certificate, automatically preventing authorization of vehicles with revoked certificates.
+SEID-Auth inherits the authentication, integrity, and revocation properties of the underlying ISO 15118-20 mTLS infrastructure (see Sections 3 and 6.2). The CSMS audit log of EVCCID and session data provides non-repudiation at the application layer.
 
 ---
 
@@ -509,9 +501,9 @@ SEID-Auth provides:
 
 ### 9.1 Key Actors
 
-**EVSE Manufacturers** are the most critical actors for SEID-Auth adoption. The SECC firmware must be updated to extract the EVCCID from the validated Vehicle Certificate and include it in OCPP AuthorizeRequest messages. Since these manufacturers are already implementing ISO 15118-20 mTLS (mandatory from 2027 under EU AFIR), the incremental effort is focused on the OCPP integration — extracting one field from an already-validated certificate and transmitting it to the CSMS. EVSE manufacturers developing or updating their SECC implementations should consider SEID-Auth support as a natural extension of their ISO 15118-20 compliance work.
+**EVSE Manufacturers** are the most critical actors for SEID-Auth adoption. The SECC firmware must be updated to extract the EVCCID from the validated Vehicle Certificate and include it in OCPP AuthorizeRequest messages. Since these manufacturers are already implementing ISO 15118-20 mTLS (mandatory from 2027 under EU AFIR), the incremental effort is focused on the OCPP integration — extracting one field from an already-validated certificate and transmitting it to the CSMS.
 
-**CSMS providers** are the second critical actor. They must support the new `EVCCID` IdToken type, implement the enrollment flows (first-see-and-link and fleet pre-registration), and provide fleet management interfaces for EVCCID administration. For CSMS providers already supporting Autocharge (MAC-based), SEID-Auth follows the same architectural pattern with a different — and more secure — identifier.
+**CSMS providers** are the second critical actor. They must support the new `EVCCID` IdToken type, implement the enrollment flows (first-see-and-link and fleet pre-registration), and provide fleet management interfaces for EVCCID administration.
 
 **Fleet operators / private CPOs** are the primary early beneficiaries, particularly those operating their own charging infrastructure. They can drive adoption by requesting SEID-Auth support from their EVSE and CSMS vendors.
 
@@ -545,14 +537,6 @@ SEID-Auth is designed to coexist with other authorization methods:
 - **Plug & Charge:** If an EV supports PnC with contract certificates, the SECC may prioritize PnC authorization over SEID-Auth, as PnC provides additional eMSP-level contract validation. The two methods are not mutually exclusive.
 - **Credit card terminals:** Physical payment terminals operate independently and are unaffected by SEID-Auth.
 
-### 9.5 OCPP 2.1 Readiness
-
-OCPP 2.1 is under development with enhanced ISO 15118-20 support. SEID-Auth is designed to align with the OCPP 2.1 direction:
-
-- The proposed `EVCCID` IdToken type fits naturally into the existing OCPP authorization architecture.
-- The extended `idToken` field length recommendation aligns with OCPP 2.1's broader support for ISO 15118-20 identifiers.
-- SEID-Auth does not require changes to the OCPP transaction model; it uses standard AuthorizeRequest/Response and TransactionEventRequest messages.
-
 ---
 
 ## 10. Standards Body Engagement
@@ -572,11 +556,11 @@ Successful adoption of SEID-Auth requires engagement with the following standard
 
 ### 10.3 EVSE Manufacturers
 
-- **Direct engagement:** EVSE manufacturers implementing ISO 15118-20 SECC firmware are the most critical adoption path. The incremental implementation effort — extracting the EVCCID from an already-validated certificate and including it in OCPP messages — is minimal relative to the base ISO 15118-20 implementation.
+- **Direct engagement:** Engage SECC firmware teams during their ISO 15118-20 implementation cycle; SEID-Auth support requires extracting one certificate field and adding one OCPP message field.
 
 ### 10.4 ISO TC22/SC31 (ISO 15118)
 
-- **No changes required.** SEID-Auth operates entirely within the existing ISO 15118-20 framework. The EVCCID and Vehicle Certificate are already defined. The mTLS handshake is already mandatory. SEID-Auth simply uses existing protocol elements for a new purpose at the application layer.
+- **No changes required.** SEID-Auth operates entirely within the existing framework using only existing protocol elements.
 
 ---
 
