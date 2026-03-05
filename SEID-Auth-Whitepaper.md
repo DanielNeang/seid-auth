@@ -94,8 +94,8 @@ The EVCCID appears in **two places** during an ISO 15118-20 session:
 
 This is the **most likely implementation pitfall**. The `SessionSetupReq` EVCCID is readily available in the application layer, tempting developers to use it directly. This would undermine the entire security model.
 
-- The SECC **MUST** extract the EVCCID for OCPP authorization from the **Vehicle Certificate's Subject Common Name**, never from `SessionSetupReq`.
-- The SECC **SHOULD** cross-check the two values and log a security event if they differ; it **MAY** reject the session.
+- The SECC **MUST** extract the EVCCID for OCPP authorization from the **Vehicle Certificate's Subject Common Name**.
+- The SECC **SHOULD** cross-check this value with the EVCCID from `SessionSetupReq` and log a security event if they differ; it **MAY** reject the session.
 
 ---
 
@@ -301,10 +301,10 @@ SEID-Auth inherits the authentication, integrity, and revocation properties of t
 
 - MUST implement TLS 1.3 with mutual authentication per ISO 15118-20.
 - MUST validate the full Vehicle Certificate chain to a trusted OEM Root CA before extracting the EVCCID.
-- MUST extract the EVCCID only from the Subject Common Name of a successfully validated Vehicle Certificate — **not** from `SessionSetupReq` (see Section 3.2).
+- MUST extract the EVCCID for OCPP authorization from the Subject Common Name of a successfully validated Vehicle Certificate (see Section 3.2).
 - MUST strip optional separators from the EVCCID before transmitting it in the OCPP AuthorizeRequest.
 - MUST NOT extract or use the EVCCID if the mTLS handshake fails or the certificate chain is invalid.
-- SHOULD cross-check the Vehicle Certificate EVCCID against the `SessionSetupReq` EVCCID and log a security event if they differ.
+- SHOULD cross-check this value with the EVCCID from `SessionSetupReq` and log a security event if they differ.
 - SHOULD support OCPP 2.0.1 or later for the AuthorizeRequest with IdToken type field.
 
 ### 9.2 CSMS Requirements

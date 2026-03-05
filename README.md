@@ -23,4 +23,4 @@ This is a community proposal published for open review. We welcome [discussion](
 
 ---
 
-*SEID-Auth is an independent community proposal. It is not affiliated with or endorsed by the Open Charge Alliance, CharIN, ISO, any vehicle or EVSE manufacturer, CSMS provider, or the author's employer.*
+*SEID-Auth is an independent community proposal. It is not affiliated with or endorsed by the Open Charge Alliance, CharIN, ISO, or any vehicle manufacturer, EVSE manufacturer, or CSMS provider.*
