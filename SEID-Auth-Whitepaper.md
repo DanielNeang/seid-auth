@@ -25,7 +25,7 @@
 
 ## 1. Introduction
 
-The EV charging industry has two approaches for automatic vehicle authorization. **[Autocharge](https://github.com/Autocharge-EV/Autocharge)** uses the EV's MAC address — simple but fundamentally insecure (spoofable, no cryptographic binding, broken by OEM MAC randomization). **Plug & Charge (PnC)** uses a full PKI ecosystem with contract certificates — cryptographically secure but requiring MO sub-CAs, contract certificate provisioning, a certificate pool, and bilateral roaming agreements on top of the base ISO 15118-20 PKI. Autocharge established the first-see-and-link enrollment pattern that SEID-Auth builds on; SEID-Auth replaces its insecure MAC-based identifier with a cryptographically authenticated one.
+The EV charging industry has two approaches for automatic vehicle authorization. **[Autocharge](https://github.com/Autocharge-EV/Autocharge)** uses the EV's MAC address — simple but fundamentally insecure (spoofable, no cryptographic binding, broken by OEM MAC randomization). **Plug & Charge (PnC)** uses a full PKI ecosystem with contract certificates — cryptographically secure but requiring MO sub-CAs, contract certificate provisioning, a certificate pool, and bilateral roaming agreements on top of the base ISO 15118-20 PKI.
 
 **SEID-Auth** introduces a third path. ISO 15118-20 mandates mutual TLS 1.3 for all communication sessions, including those using External Identification Means (EIM). The SECC already receives and validates the EV's Vehicle Certificate during every session. The EVCCID, embedded in the Vehicle Certificate's subject common name, is therefore always available as a cryptographically authenticated vehicle identifier — a byproduct of the mandatory security handshake.
 
