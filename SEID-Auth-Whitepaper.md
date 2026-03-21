@@ -25,7 +25,7 @@
 
 ## 1. Introduction
 
-The EV charging industry has two approaches for automatic vehicle authorization. **[Autocharge](https://github.com/Autocharge-EV/Autocharge)** uses the EV's MAC address — simple but fundamentally insecure (spoofable, no cryptographic binding, broken by OEM MAC randomization). **Plug & Charge (PnC)** uses a full PKI ecosystem with contract certificates — cryptographically secure but requiring MO sub-CAs, contract certificate provisioning, a certificate pool, and bilateral roaming agreements on top of the base ISO 15118-20 PKI.
+The EV charging industry has two approaches for automatic vehicle authorization. **[Autocharge](https://github.com/Autocharge-EV/Autocharge)** uses the EV's MAC address as the vehicle identifier — simple but fundamentally insecure (spoofable, no cryptographic binding, broken by OEM MAC randomization). This approach is rooted in how EVCCID is defined in DIN SPEC 70121 and ISO 15118-2, where EVCCID is the MAC address of the EVCC's network interface. **Plug & Charge (PnC)** uses a full PKI ecosystem with contract certificates — cryptographically secure but requiring MO sub-CAs, contract certificate provisioning, a certificate pool, and bilateral roaming agreements on top of the base ISO 15118-20 PKI.
 
 **SEID-Auth** introduces a third path. ISO 15118-20 mandates mutual TLS 1.3 for all communication sessions, including those using External Identification Means (EIM). The SECC already receives and validates the EV's Vehicle Certificate during every session. The EVCCID, embedded in the Vehicle Certificate's subject common name, is therefore always available as a cryptographically authenticated vehicle identifier — a byproduct of the mandatory security handshake.
 
@@ -36,6 +36,15 @@ SEID-Auth adds no PKI requirements beyond what ISO 15118-20 already mandates. Th
 ---
 
 ## 2. Motivation
+
+### Evolution of EVCCID
+
+The meaning of EVCCID has changed significantly across standard generations:
+
+- **DIN SPEC 70121 and ISO 15118-2:** EVCCID is defined as the **MAC address** (6 bytes, 12 hex characters) of the EVCC's network interface. This is the identifier Autocharge uses — easy to read but trivially spoofable.
+- **ISO 15118-20:** EVCCID is redefined as a structured string bound to the vehicle's identity: `WMI + ID Type "V" + OEM unique ID + check digit`, embedded in the OEM-signed Vehicle Certificate. It is no longer a network address but a cryptographically authenticated vehicle identifier.
+
+SEID-Auth is exclusively applicable to ISO 15118-20 sessions where this new EVCCID definition applies.
 
 ### ISO 15118-20: mTLS for Every Session
 
@@ -66,7 +75,7 @@ The security derives from two properties:
 
 ### 3.1 EVCCID Structure
 
-As defined in ISO 15118-20 (Annex C.5):
+As defined in ISO 15118-20 (Annex C.5), amended by ISO 15118-20/amd1:
 
 ```
 <EVCCID> = <WMI> <S> <ID Type> <S> <OEM's own unique ID> <S> <Check Digit>
@@ -75,11 +84,11 @@ As defined in ISO 15118-20 (Annex C.5):
 Where:
 - **WMI** (3 characters): World Manufacturer Identifier per ISO 3780
 - **ID Type** (1 character): Fixed value "V" indicating a vehicle EVCCID
-- **OEM's own unique ID** (15–250 characters): Manufacturer-specific unique vehicle identifier
+- **OEM's own unique ID** (15–59 characters): Manufacturer-specific unique vehicle identifier
 - **Check Digit** (1 character): Integrity verification digit computed per ISO 15118-20 Annex C.6
 - **S** (optional): Separator "-" for human readability, omitted in machine-to-machine communication
 
-The minimum length is 20 characters (without separators) and the maximum is 255 characters. The EVCCID is case-insensitive.
+The minimum length is 20 characters (without separators) and the maximum is **64 characters** (reduced from 255 in the original ISO 15118-20:2022 by ISO 15118-20/amd1). The EVCCID is case-insensitive.
 
 Example: `DE8-V-AA0000453C4D58Y-2` (26 characters with separators, 22 without)
 
@@ -211,7 +220,7 @@ OCPP 2.0.1 introduced the `IdToken` type enumeration and native certificate mana
 
 ### 7.2 IdToken Field Sizing
 
-The EVCCID can be up to 255 characters; the current OCPP 2.0.1 `idToken` field maximum is 36 characters. Most realistic EVCCIDs fit within 36 characters (minimum structure is 20 characters). OCPP implementations supporting SEID-Auth SHOULD support lengths up to 255 characters to accommodate the full range defined by ISO 15118-20.
+ISO 15118-20/amd1 sets the maximum EVCCID length at **64 characters** (without separators). The current OCPP 2.0.1 `idToken` field maximum is 36 characters, which is insufficient for the longest valid EVCCIDs. OCPP implementations supporting SEID-Auth SHOULD support `idToken` lengths of up to 64 characters. SEID-Auth proposes that the Open Charge Alliance adopt 64 as the minimum supported length for the `EVCCID` token type, aligned with ISO 15118-20/amd1.
 
 ### 7.3 Interim Guidance
 
@@ -315,7 +324,7 @@ SEID-Auth inherits the authentication, integrity, and revocation properties of t
 - MUST maintain a mapping of EVCCIDs to customer/fleet accounts.
 - MUST store unrecognized EVCCIDs for later account association (Model 1).
 - SHOULD support pre-registration of EVCCIDs via fleet management interfaces (Model 2).
-- SHOULD support `idToken` string lengths of up to 255 characters.
+- SHOULD support `idToken` string lengths of up to 64 characters (per ISO 15118-20/amd1).
 - SHOULD implement logic to detect and prompt EVCCID re-enrollment when a vehicle's EVCCID changes due to certificate renewal (Section 6.1).
 - SHOULD validate the EVCCID format against the ABNF syntax defined in ISO 15118-20 Annex C.5, including check digit verification.
 
@@ -330,7 +339,7 @@ SEID-Auth coexists with RFID (fallback for enrollment), app-based auth (alternat
 ### 10.1 Open Charge Alliance (OCA)
 
 - Addition of `EVCCID` to the OCPP IdToken `type` enumeration.
-- Extension of `idToken` string maximum length to 255 characters.
+- Extension of `idToken` string maximum length to **64 characters**, aligned with the maximum EVCCID length defined in ISO 15118-20/amd1.
 - Target: OCPP 2.1 specification.
 
 ### 10.2 CharIN
@@ -378,15 +387,17 @@ SEID-Auth coexists with RFID (fallback for enrollment), app-based auth (alternat
 ## 12. References
 
 1. **ISO 15118-20:2022** — Road vehicles — Vehicle to grid communication interface — Part 20: 2nd generation network layer and application layer requirements
-2. **ISO 15118-2:2014** — Road vehicles — Vehicle to grid communication interface — Part 2: Network and application protocol requirements
-3. **OCPP 2.0.1** — Open Charge Point Protocol 2.0.1, Open Charge Alliance
-4. **OCPP 2.1 (draft)** — Open Charge Point Protocol 2.1, Open Charge Alliance (in development)
-5. **Regulation (EU) 2023/1804** — Alternative Fuels Infrastructure Regulation (AFIR)
-6. **Commission Delegated Regulation (EU) 2025/656** — Supplementing AFIR with technical specifications including ISO 15118-20 mandate from January 1, 2027
-7. **ISO 3780** — Road vehicles — World manufacturer identifier (WMI) code
-8. **RFC 8446** — The Transport Layer Security (TLS) Protocol Version 1.3
-9. **Autocharge** — Autocharge-EV, https://github.com/Autocharge-EV/Autocharge
-10. **CharIN e.V.** — Charging Interface Initiative, https://www.charin.global/
+2. **ISO 15118-20:2022/amd1** — Amendment 1 to ISO 15118-20:2022 (reduces maximum EVCCID length from 255 to 64 characters)
+3. **ISO 15118-2:2014** — Road vehicles — Vehicle to grid communication interface — Part 2: Network and application protocol requirements (EVCCID defined as EVCC MAC address)
+4. **DIN SPEC 70121:2014** — Electromobility — Digital communication between a d.c. EV charging station and an electric vehicle for control of d.c. charging in the Combined Charging System (EVCCID defined as EVCC MAC address)
+5. **OCPP 2.0.1** — Open Charge Point Protocol 2.0.1, Open Charge Alliance
+6. **OCPP 2.1 (draft)** — Open Charge Point Protocol 2.1, Open Charge Alliance (in development)
+7. **Regulation (EU) 2023/1804** — Alternative Fuels Infrastructure Regulation (AFIR)
+8. **Commission Delegated Regulation (EU) 2025/656** — Supplementing AFIR with technical specifications including ISO 15118-20 mandate from January 1, 2027
+9. **ISO 3780** — Road vehicles — World manufacturer identifier (WMI) code
+10. **RFC 8446** — The Transport Layer Security (TLS) Protocol Version 1.3
+11. **Autocharge** — Autocharge-EV, https://github.com/Autocharge-EV/Autocharge
+12. **CharIN e.V.** — Charging Interface Initiative, https://www.charin.global/
 
 ---
 
